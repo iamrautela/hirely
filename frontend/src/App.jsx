@@ -9,7 +9,9 @@ function App() {
     <>
       <h1>Welcome to Hirely</h1>
       <SignedOut>
-        <SignInButton mode="modal"/>
+        <SignInButton mode="modal"> 
+         <button>
+          Login</button></SignInButton>
       </SignedOut>
 
       <UserButton />
