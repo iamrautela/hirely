@@ -3,12 +3,18 @@
 import express from "express";
 import { ENV } from "./lib/env.js";
 import { connectDB } from "./lib/db.js";
+import cors from "cors";
 
 
 const app = express();
 
 console.log(process.env.PORT);
 console.log(process.env.DB_URL);
+
+//Middleware
+app.use(express.json())
+//credentails:true meaning ?? => server allows a browswer to include cookies
+app.use(cors({origin:ENV.CLIENT_URL, credentials:true}))
 
 
 app.get("/health", (req, res) => {
