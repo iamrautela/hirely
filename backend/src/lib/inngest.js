@@ -20,6 +20,8 @@ const syncUser = inngest.createFunction(
     }
     await User.create(newUser)
 
+    
+
   }
 );
   const deleteUserFromDB = inngest.createFunction(
