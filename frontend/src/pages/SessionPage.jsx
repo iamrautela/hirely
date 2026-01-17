@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router";
 import { useEndSession, useJoinSession, useSessionById } from "../hooks/useSessions";
 import { PROBLEMS } from "../data/problems";
 import { executeCode } from "../lib/piston";
+import { isSessionHost, isSessionParticipant } from "../lib/sessionUtils";
 import Navbar from "../components/Navbar";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { getDifficultyBadgeClass } from "../lib/utils";
@@ -11,10 +12,14 @@ import { Loader2Icon, LogOutIcon, PhoneOffIcon } from "lucide-react";
 import CodeEditorPanel from "../components/CodeEditorPanel";
 import OutputPanel from "../components/OutputPanel";
 
-import useStreamClient from "../hooks/useStreamClient";
+import useVideoCallManager from "../hooks/useVideoCallManager";
 import { StreamCall, StreamVideo } from "@stream-io/video-react-sdk";
 import VideoCallUI from "../components/VideoCallUI";
 
+/**
+ * Session Page Component
+ * Main interview session interface with video call, code editor, and chat
+ */
 function SessionPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -23,22 +28,22 @@ function SessionPage() {
   const [isRunning, setIsRunning] = useState(false);
 
   const { data: sessionData, isLoading: loadingSession, refetch } = useSessionById(id);
-
   const joinSessionMutation = useJoinSession();
   const endSessionMutation = useEndSession();
 
-  const session = sessionData?.session;
-  const isHost = session?.host?.clerkId === user?.id;
-  const isParticipant = session?.participant?.clerkId === user?.id;
+  const session = sessionData?.data?.session;
+  const isHost = isSessionHost(session, user?.id);
+  const isParticipant = isSessionParticipant(session, user?.id);
 
-  const { call, channel, chatClient, isInitializingCall, streamClient } = useStreamClient(
+  // Use the new video call manager hook
+  const { call, channel, chatClient, isInitializingCall, streamClient } = useVideoCallManager(
     session,
     loadingSession,
     isHost,
     isParticipant
   );
 
-  // find the problem data based on session problem title
+  // Find the problem data based on session problem title
   const problemData = session?.problem
     ? Object.values(PROBLEMS).find((p) => p.title === session.problem)
     : null;
@@ -46,51 +51,68 @@ function SessionPage() {
   const [selectedLanguage, setSelectedLanguage] = useState("javascript");
   const [code, setCode] = useState(problemData?.starterCode?.[selectedLanguage] || "");
 
-  // auto-join session if user is not already a participant and not the host
+  /**
+   * Effect: Auto-join session if user is not already involved
+   */
   useEffect(() => {
     if (!session || !user || loadingSession) return;
     if (isHost || isParticipant) return;
 
     joinSessionMutation.mutate(id, { onSuccess: refetch });
+  }, [session, user, loadingSession, isHost, isParticipant, id, joinSessionMutation, refetch]);
 
-    // remove the joinSessionMutation, refetch from dependencies to avoid infinite loop
-  }, [session, user, loadingSession, isHost, isParticipant, id]);
-
-  // redirect the "participant" when session ends
+  /**
+   * Effect: Redirect when session is completed
+   */
   useEffect(() => {
     if (!session || loadingSession) return;
-
-    if (session.status === "completed") navigate("/dashboard");
+    if (session.status === "completed") {
+      navigate("/dashboard");
+    }
   }, [session, loadingSession, navigate]);
 
-  // update code when problem loads or changes
+  /**
+   * Effect: Update code when problem loads or language changes
+   */
   useEffect(() => {
     if (problemData?.starterCode?.[selectedLanguage]) {
       setCode(problemData.starterCode[selectedLanguage]);
     }
   }, [problemData, selectedLanguage]);
 
+  /**
+   * Handle language change
+   */
   const handleLanguageChange = (e) => {
     const newLang = e.target.value;
     setSelectedLanguage(newLang);
-    // use problem-specific starter code
     const starterCode = problemData?.starterCode?.[newLang] || "";
     setCode(starterCode);
     setOutput(null);
   };
 
+  /**
+   * Handle code execution
+   */
   const handleRunCode = async () => {
     setIsRunning(true);
     setOutput(null);
 
-    const result = await executeCode(selectedLanguage, code);
-    setOutput(result);
-    setIsRunning(false);
+    try {
+      const result = await executeCode(selectedLanguage, code);
+      setOutput(result);
+    } catch (error) {
+      console.error("Error running code:", error);
+    } finally {
+      setIsRunning(false);
+    }
   };
 
+  /**
+   * Handle session end (host only)
+   */
   const handleEndSession = () => {
     if (confirm("Are you sure you want to end this session? All participants will be notified.")) {
-      // this will navigate the HOST to dashboard
       endSessionMutation.mutate(id, { onSuccess: () => navigate("/dashboard") });
     }
   };
@@ -104,7 +126,7 @@ function SessionPage() {
           {/* LEFT PANEL - CODE EDITOR & PROBLEM DETAILS */}
           <Panel defaultSize={50} minSize={30}>
             <PanelGroup direction="vertical">
-              {/* PROBLEM DSC PANEL */}
+              {/* PROBLEM DESCRIPTION PANEL */}
               <Panel defaultSize={50} minSize={20}>
                 <div className="h-full overflow-y-auto bg-base-200">
                   {/* HEADER SECTION */}
@@ -129,8 +151,8 @@ function SessionPage() {
                             session?.difficulty
                           )}`}
                         >
-                          {session?.difficulty.slice(0, 1).toUpperCase() +
-                            session?.difficulty.slice(1) || "Easy"}
+                          {session?.difficulty?.charAt(0).toUpperCase() +
+                            session?.difficulty?.slice(1) || "Easy"}
                         </span>
                         {isHost && session?.status === "active" && (
                           <button
@@ -154,7 +176,7 @@ function SessionPage() {
                   </div>
 
                   <div className="p-6 space-y-6">
-                    {/* problem desc */}
+                    {/* Problem Description */}
                     {problemData?.description && (
                       <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
                         <h2 className="text-xl font-bold mb-4 text-base-content">Description</h2>
@@ -169,7 +191,7 @@ function SessionPage() {
                       </div>
                     )}
 
-                    {/* examples section */}
+                    {/* Examples Section */}
                     {problemData?.examples && problemData.examples.length > 0 && (
                       <div className="bg-base-100 rounded-xl shadow-sm p-5 border border-base-300">
                         <h2 className="text-xl font-bold mb-4 text-base-content">Examples</h2>
@@ -229,6 +251,7 @@ function SessionPage() {
 
               <PanelResizeHandle className="h-2 bg-base-300 hover:bg-primary transition-colors cursor-row-resize" />
 
+              {/* CODE EDITOR PANEL */}
               <Panel defaultSize={50} minSize={20}>
                 <PanelGroup direction="vertical">
                   <Panel defaultSize={70} minSize={30}>
@@ -294,3 +317,4 @@ function SessionPage() {
 }
 
 export default SessionPage;
+
