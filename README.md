@@ -1,78 +1,30 @@
-<h1 align="center">✨ Full-Stack Interview Platform ✨</h1>
+# Collaborative coding platform
 
-✨ Highlights:
+*Automatically synced with your [v0.app](https://v0.app) deployments*
 
-- 🧑‍💻 VSCode-Powered Code Editor
-- 🔐 Authentication via Clerk
-- 🎥 1-on-1 Video Interview Rooms
-- 🧭 Dashboard with Live Stats
-- 🔊 Mic & Camera Toggle, Screen Sharing & Recording
-- 💬 Real-time Chat Messaging
-- ⚙️ Secure Code Execution in Isolated Environment
-- 🎯 Auto Feedback — Success / Fail based on test cases
-- 🎉 Confetti on Success + Notifications on Fail
-- 🧩 Practice Problems Page (solo coding mode)
-- 🔒 Room Locking — allows only 2 participants
-- 🧠 Background Jobs with Inngest (async tasks)
-- 🧰 REST API with Node.js & Express
-- ⚡ Data Fetching & Caching via TanStack Query
-- 🤖 CodeRabbit for PR Analysis & Code Optimization
-- 🧑‍💻 Git & GitHub Workflow (branches, PRs, merges)
-- 🚀 Deployment on Sevalla (free-tier friendly)
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/iamrautelas-projects/v0-collaborative-coding-platform)
+[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/rlZYUaRGRJJ)
 
----
+## Overview
 
-## 🧪 .env Setup
+This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
+Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
 
-### Backend (`/backend`)
+## Deployment
 
-```bash
-PORT=3000
-NODE_ENV=development
+Your project is live at:
 
-DB_URL=your_mongodb_connection_url
+**[https://vercel.com/iamrautelas-projects/v0-collaborative-coding-platform](https://vercel.com/iamrautelas-projects/v0-collaborative-coding-platform)**
 
-INNGEST_EVENT_KEY=your_inngest_event_key
-INNGEST_SIGNING_KEY=your_inngest_signing_key
+## Build your app
 
-STREAM_API_KEY=your_stream_api_key
-STREAM_API_SECRET=your_stream_api_secret
+Continue building your app on:
 
-CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+**[https://v0.app/chat/rlZYUaRGRJJ](https://v0.app/chat/rlZYUaRGRJJ)**
 
-CLIENT_URL=http://localhost:5173
-```
+## How It Works
 
-### Frontend (`/frontend`)
-
-```bash
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-
-VITE_API_URL=http://localhost:3000/api
-
-VITE_STREAM_API_KEY=your_stream_api_key
-```
-
----
-
-
-## 🔧 Run the Backend
-
-```bash
-
-cd backend
-npm install
-npm run dev
-```
-
----
-
-## 🔧 Run the Frontend
-
-```
-bash
-cd frontend
-npm install
-npm run dev
-```
+1. Create and modify your project using [v0.app](https://v0.app)
+2. Deploy your chats from the v0 interface
+3. Changes are automatically pushed to this repository
+4. Vercel deploys the latest version from this repository
