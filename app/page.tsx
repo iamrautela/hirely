@@ -4,12 +4,15 @@ import React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Code2, Users, Video, MessageSquare, ArrowRight, Zap } from "lucide-react"
+import { Code2, Users, Video, MessageSquare, ArrowRight, Zap, LogOut, User } from "lucide-react"
 
 export default function HomePage() {
   const router = useRouter()
+  const { data: session, status } = useSession()
   const [joinCode, setJoinCode] = useState("")
   const [isCreating, setIsCreating] = useState(false)
   const [isJoining, setIsJoining] = useState(false)
@@ -45,7 +48,40 @@ export default function HomePage() {
           <nav className="hidden items-center gap-6 md:flex">
             <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">Features</span>
             <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">Pricing</span>
-            <span className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">Docs</span>
+            <Link href="/demo" className="text-sm text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+              Auth Demo
+            </Link>
+            {status === 'loading' ? (
+              <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+            ) : session ? (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-muted-foreground">
+                  Welcome, {session.user?.name || session.user?.email}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign out
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link href="/auth/signin">
+                  <Button variant="ghost" size="sm">
+                    Sign in
+                  </Button>
+                </Link>
+                <Link href="/auth/signup">
+                  <Button size="sm">
+                    Sign up
+                  </Button>
+                </Link>
+              </div>
+            )}
           </nav>
         </div>
       </header>
