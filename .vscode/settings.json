@@ -1,2 +1,14 @@
 {
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.fontSize": 12,
+  "terminal.integrated.lineHeight": 1.2,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": false,
+  "code-runner.runInTerminal": true,
+  "code-runner.executorMap": {
+    "typescript": "npx ts-node",
+    "javascript": "node",
+    "python": "python"
+  },
+  "code-runner.showExecutionMessage": true
 }
