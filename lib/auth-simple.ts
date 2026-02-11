@@ -5,6 +5,8 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 
 // Simple auth config without database for testing
 export const authOptions: NextAuthOptions = {
+  // secret is required for JWT/session encryption in some environments
+  secret: process.env.NEXTAUTH_SECRET || 'dev-secret',
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || 'dummy',
