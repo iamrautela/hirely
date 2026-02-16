@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback } from "react"
+import { useEffect, useRef, useCallback, useState } from "react"
 import Editor, { type Monaco } from "@monaco-editor/react"
 import type { editor } from "monaco-editor"
 import {
@@ -45,6 +45,9 @@ export function CodeEditor({
 }: CodeEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   const isExternalUpdate = useRef(false)
+   const [isRunning, setIsRunning] = useState(false)
+   const [runOutput, setRunOutput] = useState<string>("")
+   const [runError, setRunError] = useState<string>("")
 
   const handleEditorDidMount = useCallback(
     (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
@@ -107,6 +110,37 @@ export function CodeEditor({
     }
   }, [code])
 
+  const handleRun = useCallback(async () => {
+    setIsRunning(true)
+    setRunOutput("")
+    setRunError("")
+    try {
+      const response = await fetch("/api/run-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          language,
+          code,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok || data.success === false) {
+        setRunError(data.error || "Failed to run code")
+        if (data.logs && Array.isArray(data.logs)) {
+          setRunOutput(data.logs.join("\n"))
+        }
+      } else {
+        setRunOutput(data.output || "")
+      }
+    } catch (error: any) {
+      setRunError(error?.message || "Unexpected error while running code")
+    } finally {
+      setIsRunning(false)
+    }
+  }, [code, language])
+
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-editor-bg">
       {/* Editor Header */}
@@ -119,18 +153,28 @@ export function CodeEditor({
           </div>
           <span className="text-sm font-medium text-muted-foreground">main.{getFileExtension(language)}</span>
         </div>
-        <Select value={language} onValueChange={onLanguageChange}>
-          <SelectTrigger className="w-36 h-8 bg-secondary border-border text-foreground">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-card border-border">
-            {LANGUAGES.map((lang) => (
-              <SelectItem key={lang.value} value={lang.value} className="text-foreground hover:bg-secondary">
-                {lang.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={language} onValueChange={onLanguageChange}>
+            <SelectTrigger className="w-36 h-8 bg-secondary border-border text-foreground">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border">
+              {LANGUAGES.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value} className="text-foreground hover:bg-secondary">
+                  {lang.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            type="button"
+            onClick={handleRun}
+            disabled={isRunning || readOnly}
+            className="inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground shadow-sm hover:bg-accent/90 disabled:opacity-50"
+          >
+            {isRunning ? "Running..." : "Run"}
+          </button>
+        </div>
       </div>
 
       {/* Monaco Editor */}
@@ -163,6 +207,16 @@ export function CodeEditor({
             </div>
           }
         />
+      </div>
+      {/* Output Panel */}
+      <div className="h-32 border-t border-border bg-card px-3 py-2 text-xs font-mono text-foreground overflow-auto">
+        {runError ? (
+          <pre className="text-destructive whitespace-pre-wrap">{runError}</pre>
+        ) : runOutput ? (
+          <pre className="whitespace-pre-wrap">{runOutput}</pre>
+        ) : (
+          <span className="text-muted-foreground">Run your code to see output here.</span>
+        )}
       </div>
     </div>
   )
