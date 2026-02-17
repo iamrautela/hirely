@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { createOTP } from '@/lib/otp'
 import { sendOTPEmail } from '@/lib/email'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     const { email, type = 'EMAIL_VERIFICATION' } = await request.json()

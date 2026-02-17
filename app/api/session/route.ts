@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { createSession, getSession, updateSessionCode, updateSessionLanguage, addParticipant, removeParticipant, addMessage } from "@/lib/sessions"
 import type { User, Message } from "@/lib/types"
 
+export const dynamic = 'force-dynamic'
+
 // Create a new session
 export async function POST() {
   const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase()

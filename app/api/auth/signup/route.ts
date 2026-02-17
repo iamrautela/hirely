@@ -4,8 +4,18 @@ import { prisma } from '@/lib/prisma'
 import { createOTP } from '@/lib/otp'
 import { sendOTPEmail } from '@/lib/email'
 
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
+    // Check if DATABASE_URL is available
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json(
+        { error: 'Database not configured' },
+        { status: 503 }
+      )
+    }
+
     const { email, password, name } = await request.json()
 
     if (!email || !password) {

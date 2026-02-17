@@ -3,6 +3,8 @@
 
 import { NextResponse } from "next/server"
 
+export const dynamic = 'force-dynamic'
+
 // In-memory event store for each session
 const sessionEvents = new Map<string, Array<{ id: string; data: unknown; timestamp: number }>>()
 const sessionClients = new Map<string, Set<string>>()
