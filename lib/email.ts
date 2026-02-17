@@ -1,14 +1,17 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransporter({
-  host: process.env.EMAIL_SERVER_HOST,
-  port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.EMAIL_SERVER_USER,
-    pass: process.env.EMAIL_SERVER_PASSWORD,
-  },
-})
+function getTransporter() {
+  const port = parseInt(process.env.EMAIL_SERVER_PORT || "587", 10)
+  return nodemailer.createTransport({
+    host: process.env.EMAIL_SERVER_HOST,
+    port,
+    secure: false,
+    auth: {
+      user: process.env.EMAIL_SERVER_USER,
+      pass: process.env.EMAIL_SERVER_PASSWORD,
+    },
+  })
+}
 
 export async function sendOTPEmail(email: string, otp: string, type: 'verification' | 'login' = 'verification') {
   const subject = type === 'verification' ? 'Verify your email - Hirely' : 'Your login code - Hirely'
@@ -65,6 +68,7 @@ export async function sendOTPEmail(email: string, otp: string, type: 'verificati
     </html>
   `
 
+  const transporter = getTransporter()
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
@@ -146,6 +150,7 @@ export async function sendWelcomeEmail(email: string, name: string, provider?: s
     </html>
   `
 
+  const transporter = getTransporter()
   await transporter.sendMail({
     from: process.env.EMAIL_FROM,
     to: email,
