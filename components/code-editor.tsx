@@ -26,6 +26,23 @@ const LANGUAGES = [
   { value: "swift", label: "Swift" },
   { value: "kotlin", label: "Kotlin" },
   { value: "sql", label: "SQL" },
+  { value: "html", label: "HTML" },
+  { value: "css", label: "CSS" },
+  { value: "json", label: "JSON" },
+  { value: "xml", label: "XML" },
+  { value: "yaml", label: "YAML" },
+  { value: "markdown", label: "Markdown" },
+  { value: "shell", label: "Shell/Bash" },
+  { value: "powershell", label: "PowerShell" },
+  { value: "r", label: "R" },
+  { value: "scala", label: "Scala" },
+  { value: "perl", label: "Perl" },
+  { value: "lua", label: "Lua" },
+  { value: "dart", label: "Dart" },
+  { value: "elixir", label: "Elixir" },
+  { value: "haskell", label: "Haskell" },
+  { value: "clojure", label: "Clojure" },
+  { value: "objective-c", label: "Objective-C" },
 ]
 
 interface CodeEditorProps {
@@ -209,14 +226,31 @@ export function CodeEditor({
         />
       </div>
       {/* Output Panel */}
-      <div className="h-32 border-t border-border bg-card px-3 py-2 text-xs font-mono text-foreground overflow-auto">
-        {runError ? (
-          <pre className="text-destructive whitespace-pre-wrap">{runError}</pre>
-        ) : runOutput ? (
-          <pre className="whitespace-pre-wrap">{runOutput}</pre>
-        ) : (
-          <span className="text-muted-foreground">Run your code to see output here.</span>
-        )}
+      <div className="h-40 border-t border-border bg-card overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between border-b border-border bg-secondary px-3 py-1.5">
+          <span className="text-xs font-semibold text-foreground">Output</span>
+          {(runOutput || runError) && (
+            <button
+              type="button"
+              onClick={() => {
+                setRunOutput("")
+                setRunError("")
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        <div className="flex-1 px-3 py-2 text-xs font-mono text-foreground overflow-auto">
+          {runError ? (
+            <pre className="text-destructive whitespace-pre-wrap">{runError}</pre>
+          ) : runOutput ? (
+            <pre className="whitespace-pre-wrap">{runOutput}</pre>
+          ) : (
+            <span className="text-muted-foreground">Press "Run" to execute your code and see output here.</span>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -238,6 +272,23 @@ function getFileExtension(language: string): string {
     swift: "swift",
     kotlin: "kt",
     sql: "sql",
+    html: "html",
+    css: "css",
+    json: "json",
+    xml: "xml",
+    yaml: "yaml",
+    markdown: "md",
+    shell: "sh",
+    powershell: "ps1",
+    r: "r",
+    scala: "scala",
+    perl: "pl",
+    lua: "lua",
+    dart: "dart",
+    elixir: "ex",
+    haskell: "hs",
+    clojure: "clj",
+    "objective-c": "m",
   }
   return extensions[language] || "txt"
 }
