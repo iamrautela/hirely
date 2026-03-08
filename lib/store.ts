@@ -1,7 +1,7 @@
 "use client"
 
 import { create } from "zustand"
-import type { SessionState, User, Message } from "./types"
+import type { SessionState, User, Message, Whiteboard, InterviewType } from "./types"
 
 const USER_COLORS = [
   "#22c55e",
@@ -42,6 +42,10 @@ console.log(greet("World"));
   participants: [],
   messages: [],
   isConnected: false,
+  interviewType: 'coding',
+  whiteboard: null,
+  isScreenSharing: false,
+  screenshareUserId: null,
 
   setSessionId: (id) => set({ sessionId: id }),
   setCurrentUser: (user) => set({ currentUser: user }),
@@ -62,6 +66,9 @@ console.log(greet("World"));
       messages: [...state.messages, message],
     })),
   setConnected: (connected) => set({ isConnected: connected }),
+  setInterviewType: (type: InterviewType) => set({ interviewType: type }),
+  updateWhiteboard: (whiteboard: Whiteboard) => set({ whiteboard }),
+  setScreenSharing: (sharing: boolean, userId?: string) => set({ isScreenSharing: sharing, screenshareUserId: userId || null }),
   reset: () =>
     set({
       sessionId: null,
@@ -71,5 +78,9 @@ console.log(greet("World"));
       participants: [],
       messages: [],
       isConnected: false,
+      interviewType: 'coding',
+      whiteboard: null,
+      isScreenSharing: false,
+      screenshareUserId: null,
     }),
 }))

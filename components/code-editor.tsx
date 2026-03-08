@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useCallback, useState } from "react"
+import { useEffect, useRef, useCallback } from "react"
 import Editor, { type Monaco } from "@monaco-editor/react"
 import type { editor } from "monaco-editor"
 import {
@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
+import { Play } from "lucide-react"
 
 const LANGUAGES = [
   { value: "javascript", label: "JavaScript" },
@@ -26,23 +28,6 @@ const LANGUAGES = [
   { value: "swift", label: "Swift" },
   { value: "kotlin", label: "Kotlin" },
   { value: "sql", label: "SQL" },
-  { value: "html", label: "HTML" },
-  { value: "css", label: "CSS" },
-  { value: "json", label: "JSON" },
-  { value: "xml", label: "XML" },
-  { value: "yaml", label: "YAML" },
-  { value: "markdown", label: "Markdown" },
-  { value: "shell", label: "Shell/Bash" },
-  { value: "powershell", label: "PowerShell" },
-  { value: "r", label: "R" },
-  { value: "scala", label: "Scala" },
-  { value: "perl", label: "Perl" },
-  { value: "lua", label: "Lua" },
-  { value: "dart", label: "Dart" },
-  { value: "elixir", label: "Elixir" },
-  { value: "haskell", label: "Haskell" },
-  { value: "clojure", label: "Clojure" },
-  { value: "objective-c", label: "Objective-C" },
 ]
 
 interface CodeEditorProps {
@@ -50,6 +35,8 @@ interface CodeEditorProps {
   language: string
   onCodeChange: (code: string) => void
   onLanguageChange: (language: string) => void
+  onRun?: (code: string, language: string) => void
+  isRunning?: boolean
   readOnly?: boolean
 }
 
@@ -58,13 +45,12 @@ export function CodeEditor({
   language,
   onCodeChange,
   onLanguageChange,
+  onRun,
+  isRunning = false,
   readOnly = false,
 }: CodeEditorProps) {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   const isExternalUpdate = useRef(false)
-   const [isRunning, setIsRunning] = useState(false)
-   const [runOutput, setRunOutput] = useState<string>("")
-   const [runError, setRunError] = useState<string>("")
 
   const handleEditorDidMount = useCallback(
     (editor: editor.IStandaloneCodeEditor, monaco: Monaco) => {
@@ -127,37 +113,6 @@ export function CodeEditor({
     }
   }, [code])
 
-  const handleRun = useCallback(async () => {
-    setIsRunning(true)
-    setRunOutput("")
-    setRunError("")
-    try {
-      const response = await fetch("/api/run-code", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          language,
-          code,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok || data.success === false) {
-        setRunError(data.error || "Failed to run code")
-        if (data.logs && Array.isArray(data.logs)) {
-          setRunOutput(data.logs.join("\n"))
-        }
-      } else {
-        setRunOutput(data.output || "")
-      }
-    } catch (error: any) {
-      setRunError(error?.message || "Unexpected error while running code")
-    } finally {
-      setIsRunning(false)
-    }
-  }, [code, language])
-
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-editor-bg">
       {/* Editor Header */}
@@ -171,6 +126,17 @@ export function CodeEditor({
           <span className="text-sm font-medium text-muted-foreground">main.{getFileExtension(language)}</span>
         </div>
         <div className="flex items-center gap-2">
+          {language === 'javascript' && onRun && (
+            <Button
+              size="sm"
+              onClick={() => onRun(code, language)}
+              disabled={isRunning}
+              className="gap-2 bg-online text-background hover:bg-online/90"
+            >
+              <Play className="h-4 w-4" />
+              {isRunning ? 'Running...' : 'Run'}
+            </Button>
+          )}
           <Select value={language} onValueChange={onLanguageChange}>
             <SelectTrigger className="w-36 h-8 bg-secondary border-border text-foreground">
               <SelectValue />
@@ -183,14 +149,6 @@ export function CodeEditor({
               ))}
             </SelectContent>
           </Select>
-          <button
-            type="button"
-            onClick={handleRun}
-            disabled={isRunning || readOnly}
-            className="inline-flex items-center rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-accent-foreground shadow-sm hover:bg-accent/90 disabled:opacity-50"
-          >
-            {isRunning ? "Running..." : "Run"}
-          </button>
         </div>
       </div>
 
@@ -225,33 +183,6 @@ export function CodeEditor({
           }
         />
       </div>
-      {/* Output Panel */}
-      <div className="h-40 border-t border-border bg-card overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between border-b border-border bg-secondary px-3 py-1.5">
-          <span className="text-xs font-semibold text-foreground">Output</span>
-          {(runOutput || runError) && (
-            <button
-              type="button"
-              onClick={() => {
-                setRunOutput("")
-                setRunError("")
-              }}
-              className="text-xs text-muted-foreground hover:text-foreground"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-        <div className="flex-1 px-3 py-2 text-xs font-mono text-foreground overflow-auto">
-          {runError ? (
-            <pre className="text-destructive whitespace-pre-wrap">{runError}</pre>
-          ) : runOutput ? (
-            <pre className="whitespace-pre-wrap">{runOutput}</pre>
-          ) : (
-            <span className="text-muted-foreground">Press "Run" to execute your code and see output here.</span>
-          )}
-        </div>
-      </div>
     </div>
   )
 }
@@ -272,23 +203,6 @@ function getFileExtension(language: string): string {
     swift: "swift",
     kotlin: "kt",
     sql: "sql",
-    html: "html",
-    css: "css",
-    json: "json",
-    xml: "xml",
-    yaml: "yaml",
-    markdown: "md",
-    shell: "sh",
-    powershell: "ps1",
-    r: "r",
-    scala: "scala",
-    perl: "pl",
-    lua: "lua",
-    dart: "dart",
-    elixir: "ex",
-    haskell: "hs",
-    clojure: "clj",
-    "objective-c": "m",
   }
   return extensions[language] || "txt"
 }

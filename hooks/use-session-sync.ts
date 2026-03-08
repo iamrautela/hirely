@@ -163,8 +163,6 @@ export function useSessionSync({
   // Join session
   const joinSession = useCallback(async () => {
     if (joinedRef.current) return
-    // Don't join until we have a real user id
-    if (!currentUser.id) return
 
     try {
       const response = await fetch("/api/ws", {

@@ -5,10 +5,13 @@ import { CodeEditor } from "./code-editor"
 import { VideoPanel } from "./video-panel"
 import { ChatPanel } from "./chat-panel"
 import { ParticipantsPanel } from "./participants-panel"
+import { InterviewInfo } from "./interview-info"
+import { DesignCanvas } from "./design-canvas"
+import { TerminalOutput, type TerminalLine } from "./terminal-output"
 import { Button } from "@/components/ui/button"
-import { Code2, Copy, Check, LogOut, Users, MessageSquare, Video, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Code2, Copy, Check, LogOut, Users, MessageSquare, Video, PanelLeftClose, PanelLeft, Palette } from "lucide-react"
 import Link from "next/link"
-import type { User, Message } from "@/lib/types"
+import type { User, Message, InterviewType } from "@/lib/types"
 
 interface SessionLayoutProps {
   sessionId: string
@@ -27,6 +30,11 @@ interface SessionLayoutProps {
   isAudioEnabled: boolean
   onToggleVideo: () => void
   onToggleAudio: () => void
+  onRun?: (code: string, language: string) => void
+  isRunning?: boolean
+  terminalOutput?: TerminalLine[]
+  onClearTerminal?: () => void
+  interviewType?: InterviewType
 }
 
 export function SessionLayout({
@@ -46,10 +54,15 @@ export function SessionLayout({
   isAudioEnabled,
   onToggleVideo,
   onToggleAudio,
+  onRun,
+  isRunning = false,
+  terminalOutput = [],
+  onClearTerminal,
+  interviewType = 'coding',
 }: SessionLayoutProps) {
   const [copied, setCopied] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
-  const [activeTab, setActiveTab] = useState<"chat" | "participants">("chat")
+  const [activeTab, setActiveTab] = useState<"chat" | "participants" | "whiteboard">("chat")
 
   const copySessionLink = async () => {
     const link = `${window.location.origin}/session/${sessionId}`
@@ -67,7 +80,7 @@ export function SessionLayout({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent">
               <Code2 className="h-5 w-5 text-accent-foreground" />
             </div>
-            <span className="text-lg font-semibold text-foreground">Hirely</span>
+            <span className="text-lg font-semibold text-foreground">CodeCollab</span>
           </Link>
           <div className="h-6 w-px bg-border" />
           <div className="flex items-center gap-2">
@@ -111,6 +124,20 @@ export function SessionLayout({
               <Users className="mr-1.5 h-4 w-4" />
               <span>{participants.length}</span>
             </Button>
+            {(interviewType === 'uiux' || interviewType === 'frontend') && (
+              <Button
+                variant={activeTab === "whiteboard" ? "default" : "ghost"}
+                size="sm"
+                className={activeTab === "whiteboard" ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:text-foreground"}
+                onClick={() => {
+                  setActiveTab("whiteboard")
+                  setShowSidebar(true)
+                }}
+              >
+                <Palette className="mr-1.5 h-4 w-4" />
+                Canvas
+              </Button>
+            )}
           </div>
 
           <Button
@@ -136,14 +163,28 @@ export function SessionLayout({
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Code Editor */}
-        <main className="flex-1 p-4">
-          <CodeEditor
-            code={code}
-            language={language}
-            onCodeChange={onCodeChange}
-            onLanguageChange={onLanguageChange}
-          />
+        {/* Code Editor and Terminal */}
+        <main className="flex-1 flex flex-col gap-4 p-4 overflow-hidden">
+          {/* Code Editor - Top Half */}
+          <div className="flex-1 min-h-0">
+            <CodeEditor
+              code={code}
+              language={language}
+              onCodeChange={onCodeChange}
+              onLanguageChange={onLanguageChange}
+              onRun={onRun}
+              isRunning={isRunning}
+            />
+          </div>
+
+          {/* Terminal - Bottom Half */}
+          <div className="flex-1 min-h-0 border border-border rounded-lg">
+            <TerminalOutput
+              lines={terminalOutput}
+              isRunning={isRunning}
+              onClear={onClearTerminal}
+            />
+          </div>
         </main>
 
         {/* Sidebar */}
@@ -160,6 +201,14 @@ export function SessionLayout({
                 isAudioEnabled={isAudioEnabled}
                 onToggleVideo={onToggleVideo}
                 onToggleAudio={onToggleAudio}
+              />
+            </div>
+
+            {/* Interview Info */}
+            <div className="border-b border-border p-3">
+              <InterviewInfo
+                interviewType={interviewType}
+                userRole={currentUser.role}
               />
             </div>
 
@@ -185,6 +234,18 @@ export function SessionLayout({
               >
                 Participants ({participants.length})
               </button>
+              {(interviewType === 'uiux' || interviewType === 'frontend') && (
+                <button
+                  className={`flex-1 px-4 py-2 text-sm font-medium transition-colors ${
+                    activeTab === "whiteboard"
+                      ? "border-b-2 border-accent text-foreground"
+                      : "text-muted-foreground"
+                  }`}
+                  onClick={() => setActiveTab("whiteboard")}
+                >
+                  Canvas
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -195,11 +256,15 @@ export function SessionLayout({
                   currentUserId={currentUser.id}
                   onSendMessage={onSendMessage}
                 />
-              ) : (
+              ) : activeTab === "participants" ? (
                 <ParticipantsPanel
                   participants={participants}
                   currentUserId={currentUser.id}
                 />
+              ) : (
+                <div className="overflow-auto p-3">
+                  <DesignCanvas />
+                </div>
               )}
             </div>
           </aside>

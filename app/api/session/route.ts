@@ -1,20 +1,20 @@
 import { NextResponse } from "next/server"
-import { createSession, getSession, updateSessionCode, updateSessionLanguage, addParticipant, removeParticipant, addMessage } from "@/lib/sessions"
-import type { User, Message } from "@/lib/types"
-
-export const dynamic = 'force-dynamic'
+import { createSession, getSession, updateSessionCode, updateSessionLanguage, addParticipant, removeParticipant, addMessage, updateSessionInterviewType } from "@/lib/sessions"
+import type { User, Message, InterviewType } from "@/lib/types"
 
 // Create a new session
-export async function POST() {
+export async function POST(request: Request) {
+  const body = await request.json().catch(() => ({}))
+  const interviewType = (body.interviewType || 'coding') as InterviewType
   const sessionId = Math.random().toString(36).substring(2, 8).toUpperCase()
-  const session = createSession(sessionId)
+  const session = createSession(sessionId, interviewType)
   return NextResponse.json({ sessionId: session.id })
 }
 
 // Get session or update session
 export async function PUT(request: Request) {
   const body = await request.json()
-  const { action, sessionId, code, language, user, userId, message } = body
+  const { action, sessionId, code, language, interviewType, user, userId, message } = body
 
   const session = getSession(sessionId)
   
@@ -24,7 +24,7 @@ export async function PUT(request: Request) {
 
   if (!session) {
     // Create session if it doesn't exist (for join links)
-    const newSession = createSession(sessionId)
+    const newSession = createSession(sessionId, interviewType || 'coding')
     return NextResponse.json(newSession)
   }
 
@@ -38,6 +38,10 @@ export async function PUT(request: Request) {
     
     case "updateLanguage":
       updateSessionLanguage(sessionId, language)
+      return NextResponse.json({ success: true })
+    
+    case "updateInterviewType":
+      updateSessionInterviewType(sessionId, interviewType)
       return NextResponse.json({ success: true })
     
     case "join":
