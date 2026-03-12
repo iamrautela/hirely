@@ -1,6 +1,5 @@
 'use client'
-
-import React, { useState } from 'react'
+import React, { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { InterviewFeedbackForm } from '@/components/interview-feedback-form'
 import { Card } from '@/components/ui/card'
@@ -19,7 +18,7 @@ const MOCK_INTERVIEW: Interview = {
   notes: 'Candidate showed good problem-solving skills',
 }
 
-export default function FeedbackPage() {
+function FeedbackContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const interviewId = searchParams.get('interviewId') || '1'
@@ -28,10 +27,8 @@ export default function FeedbackPage() {
   const interview = MOCK_INTERVIEW
 
   const handleSubmitFeedback = (feedback: InterviewFeedback) => {
-    console.log('[v0] Feedback submitted:', feedback)
+    console.log('[hirely] Feedback submitted:', feedback)
     setSubmitted(true)
-
-    // Simulate saving
     setTimeout(() => {
       router.push('/dashboard')
     }, 2000)
@@ -67,5 +64,13 @@ export default function FeedbackPage() {
         />
       </div>
     </main>
+  )
+}
+
+export default function FeedbackPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground">Loading...</div>}>
+      <FeedbackContent />
+    </Suspense>
   )
 }

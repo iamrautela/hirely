@@ -10,7 +10,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Hirely - AI-Powered Interview Platform',
   description: 'The complete platform for technical interviews. Real-time code editing, design challenges, AI/ML assessments, video chat, and seamless collaboration.',
-  generator: 'v0.app',
+  generator: 'hirely.app',
   icons: {
     icon: [
       {

@@ -38,7 +38,7 @@ export default function SchedulePage() {
       notes: interview.notes,
     }
     setInterviews([...interviews, newInterview])
-    console.log('[v0] Interview scheduled:', newInterview)
+    console.log('[hirely] Interview scheduled:', newInterview)
   }
 
   return (

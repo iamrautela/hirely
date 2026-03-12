@@ -76,7 +76,7 @@ export default function DashboardPage() {
   }
 
   const handleEditFeedback = (interviewId: string, feedback: string) => {
-    console.log('[v0] Feedback edited:', interviewId, feedback)
+    console.log('[hirely] Feedback edited:', interviewId, feedback)
   }
 
   return (

@@ -88,7 +88,7 @@ export default function SessionPage() {
 
   const handleUploadDataset = useCallback((file: File) => {
     // Handle dataset upload for AI/ML
-    console.log("[v0] Uploading dataset:", file.name)
+    console.log("[hirely] Uploading dataset:", file.name)
   }, [])
 
   const handleParticipantJoin = useCallback((user: User) => {
